@@ -1,11 +1,7 @@
 package com.j1.es.utils;
 
-import java.io.IOException;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexResponse;

@@ -67,7 +67,7 @@ public class ElasticSearchTest {
 	 */
 	@Test
 	public void testAddDoc() throws Exception {
-		Books books = new Books(6L, "Java编程思想", "java", "Bruce Eckel", 70L, "Java学习必读经典,殿堂级著作！赢得了全球程序员的");
+		Books books = new Books(6L, "Java编程思想", "java", "Bruce Eckel", 6L, "Java学习必读经典,殿堂级著作！赢得了全球程序员的");
 		ElasticSearchUtils.addDocument("books", "books", books);
 
 	}
@@ -77,7 +77,7 @@ public class ElasticSearchTest {
 	 */
 	@Test
 	public void testUpdateDoc() throws Exception {
-		Books books = new Books(6L, "Spring源码实战", "java", "Bruce Eckel", 70L, "Java学习必读经典,殿堂级著作！赢得了全球程序员的");
+		Books books = new Books(6L, "Spring源码实战", "java", "Bruce Eckel", 6L, "Java学习必读经典,殿堂级著作！赢得了全球程序员的");
 		ElasticSearchUtils.addDocument("books", "books", books);
 
 	}
