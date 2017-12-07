@@ -2,16 +2,27 @@ package com.j1.es.search;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
+import org.elasticsearch.action.search.SearchRequestBuilder;
 
 import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
+import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
+
+import com.j1.es.pojo.Books;
 
 /**
  * 员工搜索
@@ -44,7 +55,9 @@ public class EmployeeSearchApp {
 		/**
 		 * 搜索查询
 		 */
-		//executeSearch(client);
+		executeSearch(client);
+		HighlightedFieldSearch(client);
+
 		client.close();
 
 	}
@@ -98,38 +111,66 @@ public class EmployeeSearchApp {
 		             .setPostFilter(QueryBuilders.rangeQuery("age")
 		               .from(30).to(40))
 		                  .setFrom(0).setSize(1).get();
-		/**
-		 * GET /company/_search
-			{
-			  "query": {
-			    "bool": {
-			      "must": [
-			        {
-			          "match": {
-			            "position": "technique"
-			          }
-			        }
-			      ],
-			      "filter": {
-			        "range": {
-			          "age": {
-			            "gte": 30,
-			            "lte": 40
-			          }
-			        }
-			      }
-			    }
-			  },
-			  
-			  "from": 0,
-			  "size": 1
-			}
-		 */
+		
 		SearchHit[] searchHits=searchResponse.getHits().getHits();
 		for (int i = 0; i < searchHits.length; i++) {
 			System.out.println(searchHits[i].getSourceAsString());
 		}
 
 	}
+	/**
+	 *查询
+	
+	public static List<Books> searchBooks(Books books) throws Exception {
+		Client client = getClient();
+		/**
+		 * 定义查询条件
+		
+		
+		QueryBuilder qb = new BoolQueryBuilder().must(QueryBuilders.matchQuery("title", books.getTitle()));
+		SearchResponse response =client.prepareSearch("books").setTypes("books").setQuery(qb).execute().actionGet();
+		SearchHit[] hits =response.getHits().getHits();
+		List<Books> list=new ArrayList<Books>();
+		for(SearchHit hit: hits){
+			
+			Books book=mapper.readValue(hit.getSourceAsString(), Books.class);
+			list.add(book);
+		}
+		client.close();
+		return list;
+	}
+*/
 
-}
+	private static void HighlightedFieldSearch(TransportClient client) {
+		
+	       
+		 QueryBuilder matchQuery = QueryBuilders.matchQuery("title", "编程");
+	        HighlightBuilder hiBuilder=new HighlightBuilder();
+	        hiBuilder.preTags("<font style='color:red'>");
+	        hiBuilder.postTags("<font");
+	        hiBuilder.field("title");
+	        // 搜索数据
+	        SearchResponse response = client.prepareSearch("blog")
+	                .setQuery(matchQuery)
+	                .highlighter(hiBuilder)
+	                .execute().actionGet();
+	        //获取查询结果集
+	        SearchHits searchHits = response.getHits();
+	        System.out.println("共搜到:"+searchHits.getTotalHits()+"条结果!");
+	        //遍历结果
+	        for(SearchHit hit:searchHits){
+	            System.out.println("String方式打印文档搜索内容:");
+	            System.out.println(hit.getSourceAsString());
+	            System.out.println("Map方式打印高亮内容");
+	            System.out.println(hit.getHighlightFields());
+
+	            System.out.println("遍历高亮集合，打印高亮片段:");
+	            Text[] text = hit.getHighlightFields().get("title").getFragments();
+	            for (Text str : text) {
+	                System.out.println(str.string());
+	            }
+	        }
+	    }
+		
+	}
+

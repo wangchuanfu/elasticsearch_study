@@ -36,31 +36,7 @@ public class ElasticSearchTest {
 
 	}
 
-	/**
-	 * 测试查询
-	 * 
-	 * @throws Exception
-	 */
-	@Test
-	public void testSearchBooks() throws Exception {
-
-		Books books = new Books();
-		books.setTitle("java");
-		List<Books> bookListResult = ElasticSearchUtils.searchBooks(books);
-		/**
-		 * restfulApi:
-		 *
-		 * GET /books/books/_search { "query": { "bool" : { "must" : [ { "match"
-		 * : { "title" : { "query" : "java", "operator" : "OR", "prefix_length"
-		 * : 0, "max_expansions" : 50, "fuzzy_transpositions" : true, "lenient"
-		 * : false, "zero_terms_query" : "NONE", "boost" : 1.0 } } } ],
-		 * "disable_coord" : false, "adjust_pure_negative" : true, "boost" : 1.0
-		 * } } }
-		 */
-		for (Books book : bookListResult) {
-			System.out.println(book);
-		}
-	}
+	
 
 	/**
 	 * 测试新增document
@@ -101,6 +77,40 @@ public class ElasticSearchTest {
 	@Test
 	public void testDelDoc() throws Exception {
 		ElasticSearchUtils.deleteDocument("books", "books", 5L);
+	}
+	
+	
+	/**
+	 * 测试高亮显示
+	 */
+	@Test
+	public void searchHighLight() throws Exception {
+		 ElasticSearchUtils.searchHighLight("java");
+	}
+	/**
+	 * 测试查询
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void testSearchBooks() throws Exception {
+
+		Books books = new Books();
+		books.setTitle("java");
+		List<Books> bookListResult = ElasticSearchUtils.searchBooks(books);
+		/**
+		 * restfulApi:
+		 *
+		 * GET /books/books/_search { "query": { "bool" : { "must" : [ { "match"
+		 * : { "title" : { "query" : "java", "operator" : "OR", "prefix_length"
+		 * : 0, "max_expansions" : 50, "fuzzy_transpositions" : true, "lenient"
+		 * : false, "zero_terms_query" : "NONE", "boost" : 1.0 } } } ],
+		 * "disable_coord" : false, "adjust_pure_negative" : true, "boost" : 1.0
+		 * } } }
+		 */
+		for (Books book : bookListResult) {
+			System.out.println(book);
+		}
 	}
 
 }

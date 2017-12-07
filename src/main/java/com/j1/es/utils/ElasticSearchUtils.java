@@ -13,11 +13,14 @@ import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.text.Text;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.SearchHits;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,27 +130,7 @@ public class ElasticSearchUtils{
 	}
 
 	
-	/**
-	 *查询
-	 */
-	public static List<Books> searchBooks(Books books) throws Exception {
-		Client client = getClient();
-		/**
-		 * 定义查询条件
-		 */
-		
-		QueryBuilder qb = new BoolQueryBuilder().must(QueryBuilders.matchQuery("title", books.getTitle()));
-		SearchResponse response =client.prepareSearch("books").setTypes("books").setQuery(qb).execute().actionGet();
-		SearchHit[] hits =response.getHits().getHits();
-		List<Books> list=new ArrayList<Books>();
-		for(SearchHit hit: hits){
-			
-			Books book=mapper.readValue(hit.getSourceAsString(), Books.class);
-			list.add(book);
-		}
-		client.close();
-		return list;
-	}
+	
 	
 	/**
 	 * 新增一个document
@@ -203,4 +186,85 @@ public class ElasticSearchUtils{
 		client.close();
 		
 	}
+	/**
+	 * 高亮显示
+	 * 
+GET blog/article/_search
+{
+  "query": {
+    "match": {
+      "title": "java"
+      }
+    },
+    "highlight": {
+    "pre_tags": [
+      "<font style='color:red'>"
+    ],
+    "post_tags": [
+      "</font>"
+    ],
+    "fields": {
+      "title": {
+       
+      }
+    }
+  }
 }
+	 */
+	public static void searchHighLight(String str) throws Exception {
+		Client client = getClient();
+		 QueryBuilder matchQuery = QueryBuilders.matchQuery("title", str);
+	        HighlightBuilder hiBuilder=new HighlightBuilder();
+	        hiBuilder.preTags("<font style='color:red'>");
+	        hiBuilder.postTags("<font");
+	        hiBuilder.field("title");
+	        //hiBuilder.field("content");
+
+	        /**
+	         * 执行查询
+	         */
+	        SearchResponse response = client.prepareSearch("blog")
+	                .setQuery(matchQuery)
+	                .highlighter(hiBuilder)
+	                .execute().actionGet();
+	        //获取查询结果集
+	        SearchHits searchHits = response.getHits();
+	        System.out.println("共搜到:"+searchHits.getTotalHits()+"条结果!");
+	        //遍历结果
+	        for(SearchHit hit:searchHits){
+	            System.out.println("String方式打印文档搜索内容:");
+	            System.out.println(hit.getSourceAsString());
+	            System.out.println("Map方式打印高亮内容");
+	            System.out.println(hit.getHighlightFields());
+
+	            System.out.println("遍历高亮集合，打印高亮片段:");
+	            Text[] text = hit.getHighlightFields().get("title").getFragments();
+	            for (Text strs : text) {
+	                System.out.println(strs.string());
+	            }
+	        }
+	    }
+	/**
+	 *查询
+	 */
+	public static List<Books> searchBooks(Books books) throws Exception {
+		Client client = getClient();
+		/**
+		 * 定义查询条件
+		 */
+		
+		QueryBuilder qb = new BoolQueryBuilder().must(QueryBuilders.matchQuery("title", books.getTitle()));
+		SearchResponse response =client.prepareSearch("books").setTypes("books").setQuery(qb).execute().actionGet();
+		SearchHit[] hits =response.getHits().getHits();
+		List<Books> list=new ArrayList<Books>();
+		for(SearchHit hit: hits){
+			
+			Books book=mapper.readValue(hit.getSourceAsString(), Books.class);
+			list.add(book);
+		}
+		client.close();
+		return list;
+	  }
+	
+	}	
+
